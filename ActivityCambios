@@ -1,0 +1,126 @@
+package com.example.elizabeth.android_http_2;
+
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import controlador.AnalizadorJSON;
+
+/**
+ * Created by Elizabeth on 05/12/2017.
+ */
+
+public class ActivityCambios extends AppCompatActivity {
+    EditText cajaNumControl, cajaNombre, cajaPrimerAp, cajaSegundoAp, cajaEdad, cajaSemestre, cajaCarrera;
+
+    @Override
+
+    protected void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_cambios);
+
+        cajaNumControl = (EditText) findViewById(R.id.cajaNumControl);
+        cajaNombre = (EditText) findViewById(R.id.cajaNombre);
+        cajaPrimerAp = (EditText) findViewById(R.id.cajaPrimerAp);
+        cajaSegundoAp = (EditText) findViewById(R.id.cajaSegundoAp);
+        cajaEdad = (EditText) findViewById(R.id.cajaEdad);
+        cajaSemestre = (EditText) findViewById(R.id.cajaSemestre);
+        cajaCarrera = (EditText) findViewById(R.id.cajaCarrera);
+    }
+
+    public void ModificarRegistro(View v){
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni= cm.getActiveNetworkInfo();
+
+        if(ni != null && ni.isConnected()){
+            String nc = cajaNumControl.getText().toString();
+            String n = cajaNombre.getText().toString();
+            String pa = cajaPrimerAp.getText().toString();
+            String sa = cajaSegundoAp.getText().toString();
+            String e = cajaEdad.getText().toString();
+            String s = cajaSemestre.getText().toString();
+            String c = cajaCarrera.getText().toString();
+
+            //Usar una clase interna para que realice la inserccion
+            //El metodo execute manda llamar el metodo doInB..
+            new  ModificarAlumno().execute(nc, n, pa, sa, e, s, c);
+            Toast.makeText(this, "Se han guardado los Cambios", Toast.LENGTH_SHORT).show();
+        }//if
+    }//Metodo agregar registro
+
+
+    class ModificarAlumno extends AsyncTask<String, String, String> {
+
+        @Override
+        //VarAgrs: Cantidad variable de parametros, recibira los strings que quiera
+        //Este metodo es como el run
+        protected String doInBackground(String... datos) {
+
+            Map<String, String> registros = new HashMap<String, String>();
+            registros.put("nc", datos[0]);
+            registros.put("n", datos[1]);
+            registros.put("pa", datos[2]);
+            registros.put("sa", datos[3]);
+            registros.put("e", datos[4]);
+            registros.put("s", datos[5]);
+            registros.put("c", datos[6]);
+
+            Log.i("MSJ datos:", Arrays.toString(datos));
+
+            AnalizadorJSON aJSON = new AnalizadorJSON();
+
+            //A donde vamos a enviar los datos, y porque metodo
+            //Local host Emulador Android Studio
+            String url2 = "http://10.0.2.2:81/Pruebas_PHP/HTTP_Android/cambios_alumnos.php";
+
+            String metodoEnvio = "POST";
+
+            //Se crea el objeto para mandarle los datos al Analizador JSON
+            final JSONObject jsonObject = aJSON.peticionHTTP(url2, metodoEnvio, registros);
+
+            Log.i("MSJ JSON: ", jsonObject.toString());
+
+            //Enviar a GUI el mensaje
+
+            try {
+                Log.i("MSJ", jsonObject.toString());
+                //-----------------------------
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), jsonObject.toString(), Toast.LENGTH_LONG).show();
+                    }
+
+                });
+                //-----------------------------
+
+                int exito = jsonObject.getInt("exito");
+                if (exito == 1) {
+                    //Toast.makeText(getApplicationContext(), "Registro Guardado", Toast.LENGTH_SHORT).show();
+                    Log.i("MSJ", "Registro Modificado");
+                } else {
+                    //Toast.makeText(getApplicationContext(), "Error en la Modificación", Toast.LENGTH_SHORT).show();
+                    Log.i("MSJ", "Error en la Modificación");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }//Metodo doInBackground
+    }
+}
