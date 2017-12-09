@@ -1,0 +1,234 @@
+package controlador;
+
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Map;
+
+/**
+ * Created by Elizabeth on 28/11/2017.
+ */
+
+public class AnalizadorJSON {
+
+     InputStream is = null;
+     JSONObject jsonObject = null;
+     String json = null;
+
+    public JSONObject peticionHTTP(String url, String metodo, Map datos) {
+
+        HttpURLConnection conexion = null;
+        URL mUrl = null;
+
+        //'{"a":1, "b":2, "c":3...}'
+
+        try {
+            String cadenaJSON = "{\"nc\":\"" + URLEncoder.encode(String.valueOf(datos.get("nc")), "UTF-8")+
+                                 "\",\"n\":\"" + URLEncoder.encode(String.valueOf(datos.get("n")), "UTF-8")+
+                                 "\",\"pa\":\"" + URLEncoder.encode(String.valueOf(datos.get("pa")), "UTF-8")+
+                                 "\", \"sa\":\"" + URLEncoder.encode(String.valueOf(datos.get("sa")), "UTF-8")+
+                                 "\", \"e\":\"" + URLEncoder.encode(String.valueOf(datos.get("e")), "UTF-8")+
+                                 "\", \"s\":\"" + URLEncoder.encode(String.valueOf(datos.get("s")), "UTF-8")+
+                                 "\", \"c\":\"" + URLEncoder.encode(String.valueOf(datos.get("c")), "UTF-8")+"\"}";
+            Log.e("MS cadena JSON", cadenaJSON);
+
+            mUrl = new URL(url);
+            conexion = (HttpURLConnection) mUrl.openConnection();
+
+            //activamos el envio de datoas a travez de POST
+            conexion.setDoInput(true);
+            conexion.setRequestMethod(metodo);
+
+            //tamano previamente establecido
+            conexion.setFixedLengthStreamingMode(cadenaJSON.getBytes().length);
+
+            //Establecer formato de codificaciones estandar para los datos enviados
+            conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            OutputStream os = new BufferedOutputStream(conexion.getOutputStream());
+
+            os.write(cadenaJSON.getBytes());
+            os.flush();
+            os.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //recibir respuesta HTTP desde php
+        try {
+            is = new BufferedInputStream(conexion.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder cad = new StringBuilder();
+            String fila;
+
+            while ((fila = br.readLine()) != null) {
+                cad.append(fila + "\n");
+            }
+            is.close();
+
+            json = cad.toString();
+
+            Log.i("MSJ 1:", "Respuesta JSON: " + cad);
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            Log.e("MSJ 2:", "Error en BufferedReader" + e.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("MSJ 3:", "Error en flujo de comnicacion" + e.toString());
+        }
+
+        try {
+            jsonObject = new JSONObject(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("MSJ 4:", "Error Al Convertir la Cadena en Cadena JSON");
+        }
+
+    return jsonObject;
+
+    }//metodo peticion HTTP
+
+    public JSONObject peticionHTTP(String url) {
+
+        HttpURLConnection conexion = null;
+        URL mUrl = null;
+
+        try {
+            mUrl = new URL(url);
+            conexion = (HttpURLConnection) mUrl.openConnection();
+            //activamos el envio de datoas a travez de POST
+            conexion.setDoInput(true);
+            //Establecer formato de codificaciones estandar para los datos enviados
+            conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            OutputStream os = new BufferedOutputStream(conexion.getOutputStream());
+            os.flush();
+            os.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //recibir respuesta HTTP desde php
+
+        try {
+            is = new BufferedInputStream(conexion.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder cad = new StringBuilder();
+
+            String fila;
+            while ((fila = br.readLine()) != null) {
+                cad.append(fila + "\n");
+            }
+            is.close();
+
+            json = cad.toString();
+
+            Log.i("MSJ 1:", "Respuesta JSON: " + cad);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            Log.e("MSJ 2:", "Error en BufferedReader" + e.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("MSJ 3:", "Error en flijo de comnicacion" + e.toString());
+        }
+
+        try {
+             jsonObject = new JSONObject(json);
+            } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("MSJ 4:: ", "Error al convertir la cadena en cadena JSON");
+        }
+        return jsonObject;
+    }//metodo peticion HTTP
+
+    public JSONObject peticionHTTP2(String url, String metodo, Map datos) {
+
+        HttpURLConnection conexion = null;
+        URL mUrl = null;
+
+        //'{"a":1, "b":2, "c":3...}'
+
+        try {
+            String cadenaJSON = "{\"nc\":\"" + URLEncoder.encode(String.valueOf(datos.get("nc")), "UTF-8")+ "\"}";
+            Log.e("MS cadena JSON", cadenaJSON);
+
+            mUrl = new URL(url);
+            conexion = (HttpURLConnection) mUrl.openConnection();
+
+            //activamos el envio de datoas a travez de POST
+            conexion.setDoInput(true);
+
+            //tamano previamente establecido
+            conexion.setFixedLengthStreamingMode(cadenaJSON.getBytes().length);
+
+            //Establecer formato de codificaciones estandar para los datos enviados
+            conexion.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            OutputStream os = new BufferedOutputStream(conexion.getOutputStream());
+
+            os.write(cadenaJSON.getBytes());
+            os.flush();
+            os.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //recibir respuesta HTTP desde php
+        try {
+            is = new BufferedInputStream(conexion.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder cad = new StringBuilder();
+            String fila;
+
+            while ((fila = br.readLine()) != null) {
+                cad.append(fila + "\n");
+            }
+            is.close();
+
+            json = cad.toString();
+
+            Log.i("MSJ 1:", "Respuesta JSON: " + cad);
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            Log.e("MSJ 2:", "Error en BufferedReader" + e.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("MSJ 3:", "Error en flujo de comnicacion" + e.toString());
+        }
+
+        try {
+            jsonObject = new JSONObject(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e("MSJ 4:", "Error Al Convertir la Cadena en Cadena JSON");
+        }
+
+        return jsonObject;
+
+    }//metodo peticion HTTP
+
+
+} //class
+
